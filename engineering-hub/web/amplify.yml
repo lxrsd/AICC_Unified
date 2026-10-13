@@ -1,0 +1,22 @@
+# AWS Amplify build specification for the AICC Engineering Hub (static SPA).
+# Reproducible build: install exact deps from the lockfile, type-check + build
+# with Vite, and publish the dist/ output. No backend, no secrets, no login.
+#
+# In the Amplify console set this app's "App root / monorepo" base directory to
+# engineering-hub/web so these relative paths resolve.
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
