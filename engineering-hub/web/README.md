@@ -1,28 +1,28 @@
-# AICC Engineering Hub — Web
+# AICC Engineering Hub — Web (maintainer guide)
 
-The frontend for the **AICC Engineering Hub**: a static, no-backend React + TypeScript
-single-page app built with Vite. The UI is implemented from the reference designs in
-`AICC UI/` and uses the Engineering Hub design system (serif display headings, deep
-maroon primary, purple accent, lilac/pastel surfaces).
+The frontend for the **AICC Engineering Hub**: a static, no-backend
+React + TypeScript single-page app built with Vite. This document covers local
+development, configuration, build, and deployment. For the platform overview and
+a section-by-section tour of the Hub, see the [root README](../../README.md).
 
 > **Product separation.** This is the Engineering Hub application only. The
-> **AICC Unified Center** is a *separate* application with its own future AWS Amplify
-> deployment and is not built or linked from here. The existing `apps/workbench`
-> (AI-DLC Workbench) and the `engineering-hub/accelerator-catalog-claude` catalog are
-> also separate apps; this app references them conceptually but does not modify them.
+> **AICC Unified Center** is a *separate* application (planned — see
+> [`../../unified-center/README.md`](../../unified-center/README.md)) with its
+> own future deployment, not built or linked from here.
 
-## Pages
+## Pages / routes
 
-| Route | Screen | Reference image |
-|-------|--------|-----------------|
-| `/` | Engineering Hub home | `AICC Repository.png` |
-| `/engagement-model` | Engagement Framework | `AICC Engagemnt Model.png` |
-| `/agentic-engineering` | Agentic engineering at scale | `AICC Agentic Engineering.png` |
-| `/architectures` | Reference Architectures & Best Practices | `AICC Architecture.png` |
-| `/accelerators` | Accelerators & reusable assets | (no image — built on-brand) |
-| `/knowledge-base` | Knowledge Base | `AICC Knowledge Base.png` |
-| `/one-click-deployment` | One-Click Deployment | `AICC One Click Deployment.png` |
-| `/ai-dlc-explorer` | AI-DLC Evidence Explorer | `AICC AI-DLC Workbench.png` |
+| Route | Screen |
+|-------|--------|
+| `/` | Engineering Hub home |
+| `/engagement-model` | Engagement framework |
+| `/agentic-engineering` | Agentic Engineering & Factor AI |
+| `/architectures` | Reference architectures & best practices |
+| `/accelerators` | Accelerators & reusable assets |
+| `/knowledge-base` | Knowledge Base |
+| `/one-click-deployment` | One-Click Deployment |
+| `/ai-dlc-explorer` | AI-DLC Explorer |
+| `*` | Not Found |
 
 ## Stack
 
@@ -32,26 +32,60 @@ maroon primary, purple accent, lilac/pastel surfaces).
 - Plain CSS design system in `src/styles.css` (CSS custom properties; no Tailwind, no CSS-in-JS, no UI library)
 - Vitest + Testing Library for tests
 
-Hero illustrations are abstract CSS-gradient + inline-SVG approximations of the
-reference art, not the photoreal source renders, and no trademarked logo files are shipped.
+Hero illustrations are abstract CSS-gradient + inline-SVG approximations, not
+photoreal renders; no trademarked logo files are shipped.
+
+## Requirements
+
+- Node.js >= 18
 
 ## Commands
 
 ```bash
-npm install      # install dependencies
-npm run dev      # start the dev server (Vite)
-npm run build    # type-check (tsc --noEmit) then production build
-npm run preview  # preview the production build
-npm run test     # run the vitest suite
-npm run typecheck
-npm run lint
+npm ci            # install exact dependencies from package-lock.json
+npm run dev       # start the local dev server (Vite)
+npm run build     # type-check (tsc --noEmit) then production build to dist/
+npm run preview   # preview the production build locally
+npm run test      # run the vitest suite
+npm run typecheck # type-check only
+npm run lint      # eslint
 ```
 
-## Notes
+## Configuration
 
-- Static UI: interactive CTAs such as "Launch a Solution" and "Open evidence" are
-  real, labelled buttons/links but are intentionally no-ops in Phase 1. Evidence
-  wiring (consuming `evidence-manifest.json`) is a later phase — see
-  `engineering-hub/evidence-explorer/integration-spec.md`.
-- The Evidence Explorer clone-command copy button uses `navigator.clipboard` and
-  degrades gracefully where the clipboard API is unavailable.
+The app is fully static and needs no runtime configuration. One **build-time**
+variable is supported:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `VITE_AICC_REPO_URL` | `https://github.com/your-org/AICC_Unified.git` | Repository URL shown in the "Clone Repository" command on the AI-DLC Explorer page. Set this to your organization's repository at build time. |
+
+Example:
+
+```bash
+VITE_AICC_REPO_URL="https://github.com/<org>/AICC_Unified.git" npm run build
+```
+
+## Deployment (AWS Amplify)
+
+The app deploys as a static site. An Amplify build spec is provided at
+[`amplify.yml`](amplify.yml):
+
+- Pre-build: `npm ci`
+- Build: `npm run build`
+- Artifact base directory: `dist`
+
+In the Amplify console, set the app's base directory (monorepo root) to
+`engineering-hub/web` so the spec's relative paths resolve. No backend,
+database, authentication, or other AWS infrastructure is provisioned by this
+app — the site is public and requires no login.
+
+## Notes on current functionality
+
+- Several interactive controls are **demonstrative** in the current preview:
+  "Launch a Solution" / cloud-deployment actions on One-Click Deployment, the
+  Knowledge Base search and article links, and the Accelerators catalog actions
+  are labelled, on-brand placeholders that do **not** perform provisioning,
+  search, or deployment yet.
+- The AI-DLC Explorer "Clone Repository" copy button uses `navigator.clipboard`
+  and degrades gracefully where the clipboard API is unavailable.
